@@ -1,11 +1,16 @@
 interface DelReservProps {
-  open: boolean;
+  reservation: {
+    id: number;
+    spaceName: string;
+    date: string;
+    time: string;
+  } | null;
   onConfirm: () => void;
   onCancel: () => void;
 }
 
 export function DeleteReservModal({
-  open,
+  reservation,
   onConfirm,
   onCancel,
 }: DelReservProps) {
@@ -19,7 +24,7 @@ export function DeleteReservModal({
       />
       <div className="relative bg-white p-8 rounded-xl shadow-xl z-10 w-100">
         <h2 className="text-xl font-bold text-blue-900 mb-4">
-          정말 예약을 취소하시겠습니까?
+          정말 {reservation?.id}번 예약을 취소하시겠습니까?
         </h2>
         <div className="flex justify-end gap-4">
           <button

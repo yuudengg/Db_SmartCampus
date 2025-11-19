@@ -15,7 +15,7 @@ export const UserPage = () => {
         </NavLink>
         <NavLink
           to="/"
-          className="border-2 border-red-600 rounded-full px-6 py-2 text-red-600 font-bold"
+          className="border-2 border-red-500 rounded-full px-6 py-2 text-red-500 font-bold"
         >
           로그아웃
         </NavLink>

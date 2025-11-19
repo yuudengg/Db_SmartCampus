@@ -4,19 +4,26 @@ import { NavLink } from "react-router";
 import { ClassroomTable } from "../../components/Reservation/ClassroomTable";
 import { StudyroomTable } from "../../components/Reservation/StudyroomTable";
 
-export const SpaceReservation = () => {
+export const ReservStaticPage = () => {
   const [select, setSelect] = useState<"classroom" | "studyroom">("classroom");
 
   return (
     <div className="flex flex-col h-full">
-      <NavLink to="/user">
+      <NavLink to="/admin">
         <ChevronLeft className="m-2" size={30} />
       </NavLink>
       <div className="flex flex-col items-center justify-center">
-        <h1 className="flex text-5xl font-bold text-blue-900 my-8">
-          장소 예약
-        </h1>
-        <div className="flex w-200 gap-4 mb-6">
+        <div className="flex justify-between w-180 mb-8">
+          <div className="flex flex-col items-center justify-center">
+            <div className="flex rounded-full w-50 h-50 border-4 border-blue-900 mb-2"></div>
+            <p className="text-xl text-blue-900 font-bold">실제 사용률</p>
+          </div>
+          <div className="flex flex-col items-center justify-center">
+            <div className="flex rounded-full w-50 h-50 border-4 border-blue-900 mb-2"></div>
+            <p className="text-xl text-blue-900 font-bold">예약률</p>
+          </div>
+        </div>
+        <div className="flex justify-start items-start w-200 gap-4 mb-4">
           <button
             className={`border-2 border-blue-900 text-2xl font-bold w-35 py-1 ${
               select === "classroom"

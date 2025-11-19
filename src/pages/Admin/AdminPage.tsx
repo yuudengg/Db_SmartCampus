@@ -15,7 +15,7 @@ export const AdminPage = () => {
         </NavLink>
         <NavLink
           to="/"
-          className="border-2 border-red-600 rounded-full px-6 py-2 text-red-600 font-bold"
+          className="border-2 border-red-500 rounded-full px-6 py-2 text-red-500 font-bold"
         >
           로그아웃
         </NavLink>
@@ -26,25 +26,34 @@ export const AdminPage = () => {
         </p>
         <div className="flex flex-row justify-between">
           <NavLink
-            to="/admin/manageuser"
+            to="/admin/manage/user"
             className="text-4xl text-blue-900 font-bold border border-blue-900 p-4"
           >
             사용자 관리
           </NavLink>
-          <p className="text-4xl text-blue-900 font-bold border border-blue-900 p-4">
+          <NavLink
+            to="/admin/manage/space"
+            className="text-4xl text-blue-900 font-bold border border-blue-900 p-4"
+          >
             장소 관리
-          </p>
-          <p className="text-4xl text-blue-900 font-bold border border-blue-900 p-4">
+          </NavLink>
+          <NavLink
+            to="/admin/manage/reservation"
+            className="text-4xl text-blue-900 font-bold border border-blue-900 p-4"
+          >
             예약 관리
-          </p>
+          </NavLink>
         </div>
         <p className="bg-linear-to-r from-indigo-800 to-white text-3xl text-white p-2 w-60 mt-4">
           통계
         </p>
         <div className="flex flex-row justify-between">
-          <p className="text-4xl text-blue-900 font-bold border border-blue-900 p-4">
+          <NavLink
+            to="/admin/static"
+            className="text-4xl text-blue-900 font-bold border border-blue-900 p-4"
+          >
             통계 대시보드
-          </p>
+          </NavLink>
         </div>
       </div>
     </div>
