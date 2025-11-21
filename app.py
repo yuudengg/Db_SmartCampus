@@ -1,4 +1,5 @@
 import sqlite3
+import os
 from flask import Flask, jsonify, request, session, redirect, url_for, g, flash
 from datetime import datetime, date, timedelta # date, timedelta 추가
 
@@ -87,7 +88,6 @@ def process_daily_tasks(conn):
     now_dt_str = now.strftime('%Y-%m-%d %H:%M:%S')
 
     # 노쇼 처리 대상: 예약됨 상태, 사용 확인(usage_status)이 안 되었고, 예약 종료 시간이 현재보다 이른 경우
-    # Note: 예약 종료 시간이 지난 경우에도 '노쇼' 대신 '예약됨'으로 표시될 수 있으므로, dashboard에서 이 함수를 주기적으로 호출해야 함.
     no_show_targets = conn.execute("""
         SELECT R.reservation_id, R.user_id 
         FROM Reservation R
@@ -926,7 +926,104 @@ def admin_reservation_management():
     return html
 
 # -----------------------------------------------------------
-# 대시보드 및 기능 (벌점 상세 현황 조회 링크 삭제)
+# 통계 함수 (새로 추가됨)
+# -----------------------------------------------------------
+
+@app.route('/admin/statistics')
+@login_required
+def admin_statistics():
+    """관리자 통계 페이지 (실제사용률, 장소별 월별 사용률)"""
+    # 관리자 역할 확인
+    if session.get('role') != '관리자': 
+        flash('관리자만 접근할 수 있는 페이지입니다.')
+        return redirect(url_for('dashboard')) 
+
+    conn = get_db_connection()
+    if conn is None:
+        return '데이터베이스 연결 오류', 500
+        
+    html = f"""
+    <!DOCTYPE html>
+    <title>관리자 통계</title>
+    <h1>📊 관리자 통계 대시보드</h1>
+    <a href="{url_for('dashboard')}">대시보드로 돌아가기</a>
+    <hr>
+    """
+
+    # 1. 전체 실제 사용률 (Actual Usage Rate) 계산
+    try:
+        # 사용 완료 (usage_status=1) 건수
+        used_count = conn.execute("SELECT COUNT(*) FROM Reservation WHERE usage_status = 1").fetchone()[0]
+        # 노쇼 (status='노쇼' 또는 '노쇼-처리됨') 건수
+        no_show_count = conn.execute("SELECT COUNT(*) FROM Reservation WHERE status IN ('노쇼', '노쇼-처리됨')").fetchone()[0]
+        
+        # 총 완료된 예약 (사용 완료 + 노쇼)
+        total_completed_reservations = used_count + no_show_count
+
+        actual_usage_rate = 0.0
+        if total_completed_reservations > 0:
+            actual_usage_rate = (used_count / total_completed_reservations) * 100
+            
+        html += '<h3>1. 전체 실제 사용률 (Actual Usage Rate)</h3>'
+        html += f"""
+            <p>
+                총 완료된 예약 (사용 완료 + 노쇼): <b>{total_completed_reservations}건</b><br>
+                실제 사용 완료: <b>{used_count}건</b><br>
+                노쇼 (미사용): <b>{no_show_count}건</b><br>
+                <br>
+                <strong>✅ 실제 사용률: {actual_usage_rate:.2f}%</strong>
+                <span style="font-size: small;"> (계산: 사용 완료 / (사용 완료 + 노쇼))</span>
+            </p>
+        """
+        html += "<hr>"
+
+    except Exception as e:
+        html += f'<p style="color: red;">실제 사용률 계산 중 오류 발생: {e}</p>'
+
+    # 2. 장소별 월별 사용률 (Monthly Usage Rate by Space) 계산
+    try:
+        # 월별, 공간별 총 예약 건수와 사용 완료 건수 집계
+        monthly_space_usage = conn.execute("""
+            SELECT
+                strftime('%Y-%m', reservation_date) AS month,
+                S.space_name,
+                COUNT(R.reservation_id) AS total_reservations,
+                SUM(CASE WHEN R.usage_status = 1 THEN 1 ELSE 0 END) AS completed_usage
+            FROM Reservation R
+            JOIN Space S ON R.space_id = S.space_id
+            -- 취소되지 않은 예약 (예약됨, 사용 완료, 노쇼, 노쇼-처리됨)만 포함
+            WHERE R.status NOT IN ('취소됨', '관리자 취소')
+            GROUP BY month, S.space_name
+            ORDER BY month DESC, S.space_name
+        """).fetchall()
+
+        html += '<h3>2. 장소별 월별 실제 사용률</h3>'
+        if monthly_space_usage:
+            html += '<table border="1"><tr><th>월</th><th>공간 이름</th><th>총 예약 (A)</th><th>사용 완료 (B)</th><th>실제 사용률 (B/A)</th></tr>'
+            for row in monthly_space_usage:
+                month = row['month']
+                space_name = row['space_name']
+                total = row['total_reservations']
+                used = row['completed_usage']
+                
+                usage_rate = 0.0
+                if total > 0:
+                    usage_rate = (used / total) * 100
+                    
+                html += f"<tr><td>{month}</td><td>{space_name}</td><td>{total}건</td><td>{used}건</td><td>{usage_rate:.2f}%</td></tr>"
+            html += '</table>'
+            html += '<p style="font-size: small; margin-top: 10px;">* 총 예약은 취소되지 않은 모든 유효한 예약을 기준으로 합니다.</p>'
+        else:
+            html += '<p>현재 집계된 통계 데이터가 없습니다.</p>'
+
+    except Exception as e:
+        html += f'<p style="color: red;">장소별 월별 사용률 계산 중 오류 발생: {e}</p>'
+        
+    return html
+
+
+# -----------------------------------------------------------
+# 대시보드 및 기능
 # -----------------------------------------------------------
 
 @app.route('/dashboard')
@@ -945,6 +1042,7 @@ def dashboard():
                 <li><a href="{url_for('admin_user_management')}"><strong>사용자 관리 (이용 제한 설정/해제)</strong></a></li> 
                 <li><a href="{url_for('admin_reservation_management')}"><strong>예약 관리 (예약 취소)</strong></a></li> 
                 <li><a href="{url_for('admin_space_management')}"><strong>장소 관리 (사용 중지 설정/해제)</strong></a></li> 
+                <li><a href="{url_for('admin_statistics')}"><strong>📊 예약 통계 보기 (신규)</strong></a></li> 
             </ul>
             <hr>
             <p><a href="{url_for('logout')}">로그아웃</a></p>
@@ -1019,7 +1117,7 @@ def dashboard():
     return html
 
 # -----------------------------------------------------------
-# 예약/취소/벌점 기능 (test4.py 스타일로 reservation_form 수정)
+# 예약/취소/벌점 기능 
 # -----------------------------------------------------------
 
 @app.route('/reservations/mine', methods=['GET', 'POST'])
@@ -1309,7 +1407,7 @@ def reservation_form():
             message = "모든 필수 예약 정보를 입력해야 합니다."
         else:
             # ************************************************************
-            # [추가된 부분] 0. 예약 시간 유효성 검사: 이미 지난 시각인지 확인
+            # [수정된 부분] 0. 예약 시간 유효성 검사: 이미 지난 시각인지 확인
             now = datetime.now()
             # 초/마이크로초를 0으로 설정하여 현재 시각을 기준으로 분 단위 비교
             now_dt_minute = now.replace(second=0, microsecond=0) 
@@ -1320,12 +1418,13 @@ def reservation_form():
                 reservation_start_dt_str = f"{res_date} {start_time_input}" 
                 reservation_start_dt = datetime.strptime(reservation_start_dt_str, '%Y-%m-%d %H:%M')
             except ValueError:
-                # 날짜/시간 형식이 잘못된 경우 (이 경우는 'if not all'에 걸릴 가능성이 높지만 안전장치)
+                # 날짜/시간 형식이 잘못된 경우 
                 message = "❌ 잘못된 날짜 또는 시간 형식입니다."
             
             # 유효한 datetime 객체가 생성되었고, 예약 시작 시간이 현재 시간보다 이른 경우
             if reservation_start_dt and reservation_start_dt < now_dt_minute:
                 message = f"❌ 예약하려는 시작 시각({res_date} {start_time_input})은 이미 지나갔으므로 예약할 수 없습니다. 현재 시각: {now.strftime('%Y-%m-%d %H:%M')}."
+                
             # ************************************************************
             elif start_time >= end_time:
                 message = "❌ 시작 시간이 종료 시간보다 빠르거나 같아야 합니다."
@@ -1440,5 +1539,8 @@ def reservation_form():
 # -----------------------------------------------------------
 # 메인 실행
 # -----------------------------------------------------------
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+if __name__ == "__main__":
+    # Render는 환경 변수 PORT를 사용합니다.
+    port = int(os.environ.get("PORT", 5000))
+    # 외부 접속을 위해 호스트를 '0.0.0.0'으로 설정
+    app.run(host="0.0.0.0", port=port)
