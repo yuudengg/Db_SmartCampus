@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import { useState, useEffect } from "react";
-import type { ReservationManage } from "../../types/Reservation";
+import type { ReservationManage } from "../../types/reservation";
 
 interface EditReservProps {
   reservation: ReservationManage;
@@ -37,7 +37,7 @@ export function EditReservModal({
 
     if (startIndex === -1 || endIndex === -1) return [];
 
-    return timesArray.slice(startIndex, endIndex + 1);
+    return timesArray.slice(startIndex, endIndex);
   };
 
   const [reserveDate, setReserveDate] = useState(reservation.date);
@@ -115,8 +115,10 @@ export function EditReservModal({
       (a, b) => times.indexOf(a) - times.indexOf(b)
     );
     const startTime = sorted[0];
-    const endTime = sorted[sorted.length - 1].replace(":00", ":59");
+    const endTimeIndex = times.indexOf(sorted[sorted.length - 1]) + 1;
+    const endTime = endTimeIndex < times.length ? times[endTimeIndex] : "22:00";
     const formattedTime = `${startTime} ~ ${endTime}`;
+
     onSave({
       ...reservation,
       date: reserveDate,

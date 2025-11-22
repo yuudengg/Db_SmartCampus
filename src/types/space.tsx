@@ -14,7 +14,10 @@ export interface SpaceStop {
 }
 
 export interface SpaceInfo {
-  no: number;
-  room: string;
+  space_id: number;
+  space_name: string;
+  location: string;
   capacity: number;
+  disable_start?: string | null;
+  disable_end?: string | null;
 }

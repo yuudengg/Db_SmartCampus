@@ -1,18 +1,31 @@
 import { ChevronLeft } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router";
 import { StopCheckingModal } from "../../components/Modals/StopCheckingModal";
 import type { User } from "../../types/user";
+import { axiosInstance } from "../../apis/axiosInstance";
 
 export const ManageUserPage = () => {
-  const [users, setUsers] = useState<User[]>([
-    { id: 1, name: "김철수", role: "학생", noShow: 2, isStop: false },
-    { id: 2, name: "이영희", role: "교수", noShow: 0, isStop: true },
-    { id: 3, name: "박민수", role: "학생", noShow: 1, isStop: false },
-  ]);
-
+  const [users, setUsers] = useState<User[]>([]);
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await axiosInstance.get("/admin/users");
+        if (res.data.success) {
+          setUsers(res.data.data);
+        } else {
+          alert("사용자 목록을 불러오지 못했습니다.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("서버 연결 오류가 발생했습니다!");
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const handleOpenModal = (user: User) => {
     setSelectedUser(user);
@@ -65,7 +78,7 @@ export const ManageUserPage = () => {
               <div className="flex justify-center">{user.role}</div>
               <div className="flex justify-center">{user.noShow}</div>
               <button
-                className={`border ${
+                className={`border w-35 ${
                   user.isStop ? "text-red-500" : "text-blue-900 px-4"
                 }`}
                 onClick={() => handleOpenModal(user)}

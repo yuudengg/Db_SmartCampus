@@ -1,11 +1,21 @@
 import { UserRoundCog } from "lucide-react";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
+import { useAdmin } from "../../hooks/useAdmin";
 
 export const AdminPage = () => {
+  const navigate = useNavigate();
+  const admin = useAdmin();
+
+  const handleLogout = () => {
+    localStorage.removeItem("admin");
+    localStorage.removeItem("role");
+    alert("로그아웃 되었습니다.");
+    navigate("/");
+  };
   return (
     <div className="flex flex-col items-center justify-center h-full gap-6">
       <UserRoundCog size={80} color="oklch(37.9% 0.146 265.522)" />
-      <p className="text-xl text-blue-900">ooo님</p>
+      <p className="text-xl text-blue-900">{admin?.name}님</p>
       <div className="flex justify-between w-80">
         <NavLink
           to="/admin/edit"
@@ -13,12 +23,12 @@ export const AdminPage = () => {
         >
           정보 수정
         </NavLink>
-        <NavLink
-          to="/"
+        <button
+          onClick={handleLogout}
           className="border-2 border-red-500 rounded-full px-6 py-2 text-red-500 font-bold"
         >
           로그아웃
-        </NavLink>
+        </button>
       </div>
       <div className="flex flex-col justify-center w-200 px-4 gap-4">
         <p className="bg-linear-to-r from-indigo-800 to-white text-3xl text-white p-2 w-60">

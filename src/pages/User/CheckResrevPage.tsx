@@ -1,31 +1,54 @@
 import { ChevronLeft } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router";
 import { DeleteReservModal } from "../../components/Modals/DeleteReservModal";
 import { CheckReservModal } from "../../components/Modals/CheckReservModal";
-import type { Reservation } from "../../types/Reservation";
+import { axiosInstance } from "../../apis/axiosInstance";
+import { useUser } from "../../hooks/useUser";
+import type { Reservation } from "../../types/reservation";
 
 export const CheckResrevPage = () => {
-  const reservations: Reservation[] = [
-    {
-      id: 1,
-      spaceName: "A101",
-      date: "2025-02-20",
-      time: "09:00 - 10:00",
-      userId: 1,
-    },
-    {
-      id: 2,
-      spaceName: "B202",
-      date: "2025-02-21",
-      time: "14:00 - 15:00",
-      userId: 2,
-    },
-  ];
-
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [selectedReservation, setSelectedReservation] =
     useState<Reservation | null>(null);
   const [modalType, setModalType] = useState<"cancel" | "check" | null>(null);
+  const user = useUser();
+
+  // ✅ 예약 데이터 불러오기
+  useEffect(() => {
+    const fetchReservations = async () => {
+      if (!user) return;
+      try {
+        const res = await axiosInstance.get(`/reservations/${user.user_id}`);
+        if (res.data.success) {
+          setReservations(res.data.data);
+        } else {
+          alert("예약 내역을 불러올 수 없습니다.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("서버 연결 오류가 발생했습니다!");
+      }
+    };
+    fetchReservations();
+  }, [user]);
+
+  const handleCancelReservation = async (id: number) => {
+    if (!window.confirm("정말 이 예약을 취소하시겠습니까?")) return;
+    try {
+      const res = await axiosInstance.put(`/reservation/cancel/${id}`);
+      if (res.data.success) {
+        alert("예약이 취소되었습니다!");
+        // 화면에서도 즉시 제거
+        setReservations((prev) => prev.filter((r) => r.id !== id));
+      } else {
+        alert(res.data.message || "예약 취소에 실패했습니다.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("서버 오류가 발생했습니다.");
+    }
+  };
 
   const closeModal = () => {
     setModalType(null);
@@ -51,39 +74,42 @@ export const CheckResrevPage = () => {
             <div className="flex justify-center">예약시간</div>
           </div>
 
-          {reservations.map((item) => (
-            <div
-              key={item.id}
-              className="grid grid-cols-[1fr_2fr_2fr_2fr_2fr_2fr] justify-center text-xl text-blue-900 gap-4 border-b py-2"
-            >
-              <div className="flex justify-center">{item.id}</div>
-              <div className="flex justify-center">{item.spaceName}</div>
-              <div className="flex justify-center">{item.date}</div>
-              <div className="flex justify-center">{item.time}</div>
+          {reservations.length === 0 ? (
+            <p className="text-center text-gray-600 py-8">
+              예약 내역이 없습니다.
+            </p>
+          ) : (
+            reservations.map((item) => (
+              <div
+                key={item.id}
+                className="grid grid-cols-[1fr_2fr_2fr_2fr_2fr_2fr] justify-center text-xl text-blue-900 gap-4 border-b py-2"
+              >
+                <div className="flex justify-center">{item.id}</div>
+                <div className="flex justify-center">{item.spaceName}</div>
+                <div className="flex justify-center">{item.date}</div>
+                <div className="flex justify-center w-32">{item.time}</div>
 
-              <div className="flex col-span-2 justify-center gap-2">
-                <button
-                  className="text-lg border px-2"
-                  onClick={() => {
-                    setSelectedReservation(item);
-                    setModalType("cancel");
-                  }}
-                >
-                  예약 취소
-                </button>
+                <div className="flex col-span-2 justify-center gap-2">
+                  <button
+                    className="text-lg border px-2"
+                    onClick={() => handleCancelReservation(item.id)}
+                  >
+                    예약 취소
+                  </button>
 
-                <button
-                  className="text-lg border px-2"
-                  onClick={() => {
-                    setSelectedReservation(item);
-                    setModalType("check");
-                  }}
-                >
-                  예약 확인
-                </button>
+                  <button
+                    className="text-lg border px-2"
+                    onClick={() => {
+                      setSelectedReservation(item);
+                      setModalType("check");
+                    }}
+                  >
+                    예약 확인
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 

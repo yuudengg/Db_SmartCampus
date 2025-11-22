@@ -17,6 +17,9 @@ import { ManageSpacePage } from "./pages/Admin/ManageSpacePage";
 import { ManageReservPage } from "./pages/Admin/ManageReservPage";
 import { ReservStaticPage } from "./pages/Admin/ReservStaticPage";
 import { SpaceStopListPage } from "./pages/Admin/SpaceStopListPage";
+import { PublicOnlyRoute } from "./components/PublicOnlyRoute";
+import { UserLayout } from "./layout/Userlayout";
+import { AdminLayout } from "./layout/Adminlayout";
 
 export function App() {
   const router = createBrowserRouter([
@@ -25,23 +28,42 @@ export function App() {
       element: <HomeLayout />,
       errorElement: <NotFoundPage />,
       children: [
-        { index: true, element: <HomePage /> },
+        {
+          index: true,
+          element: (
+            <PublicOnlyRoute>
+              <HomePage />
+            </PublicOnlyRoute>
+          ),
+        },
         { path: "signup", element: <SignupPage /> },
-
         { path: "login/user", element: <UserLoginPage /> },
-        { path: "user", element: <UserPage /> },
-        { path: "user/edit", element: <EditUserPage /> },
-        { path: "user/reservation", element: <SpaceReservation /> },
-        { path: "user/reservation/check", element: <CheckResrevPage /> },
-
         { path: "login/admin", element: <AdminLoginPage /> },
-        { path: "admin", element: <AdminPage /> },
-        { path: "admin/edit", element: <EditAdminPage /> },
-        { path: "admin/manage/user", element: <ManageUserPage /> },
-        { path: "admin/manage/space", element: <ManageSpacePage /> },
-        { path: "admin/manage/reservation", element: <ManageReservPage /> },
-        { path: "admin/static", element: <ReservStaticPage /> },
-        { path: "admin/manage/space/stop", element: <SpaceStopListPage /> },
+
+        {
+          path: "user",
+          element: <UserLayout />,
+          children: [
+            { index: true, element: <UserPage /> },
+            { path: "edit", element: <EditUserPage /> },
+            { path: "reservation", element: <SpaceReservation /> },
+            { path: "reservation/check", element: <CheckResrevPage /> },
+          ],
+        },
+
+        {
+          path: "admin",
+          element: <AdminLayout />,
+          children: [
+            { index: true, element: <AdminPage /> },
+            { path: "edit", element: <EditAdminPage /> },
+            { path: "manage/user", element: <ManageUserPage /> },
+            { path: "manage/space", element: <ManageSpacePage /> },
+            { path: "manage/reservation", element: <ManageReservPage /> },
+            { path: "static", element: <ReservStaticPage /> },
+            { path: "manage/space/stop", element: <SpaceStopListPage /> },
+          ],
+        },
       ],
     },
   ]);
