@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { ReservInfoModal } from "../Modals/ReservInfoModal";
 import { axiosInstance } from "../../apis/axiosInstance";
-import { useUser } from "../../hooks/useUser";
 import type { SpaceInfo } from "../../types/space";
 
 export const StudyroomTable = () => {
@@ -9,7 +8,6 @@ export const StudyroomTable = () => {
   const [studyrooms, setStudyrooms] = useState<SpaceInfo[]>([]);
   const [selectBuilding, setSelectBuilding] = useState("중앙도서관");
   const [selectedSpaceId, setSelectedSpaceId] = useState<number | null>(null);
-  const user = useUser();
 
   // 서버에서 스터디룸 목록 불러오기
   useEffect(() => {
