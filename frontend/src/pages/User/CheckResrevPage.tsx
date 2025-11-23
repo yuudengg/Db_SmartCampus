@@ -74,7 +74,9 @@ export const CheckResrevPage = () => {
             <div className="flex justify-center">예약시간</div>
           </div>
 
-          {reservations.length === 0 ? (
+          {reservations.filter(
+            (r) => r.status !== "예약취소" && r.status !== "취소됨"
+          ).length === 0 ? (
             <p className="text-center text-gray-600 py-8">
               예약 내역이 없습니다.
             </p>

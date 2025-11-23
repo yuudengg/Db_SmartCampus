@@ -4,6 +4,7 @@ export interface Reservation {
   date: string;
   time: string;
   userId: number;
+  status: string;
 }
 
 export interface ReservationManage {

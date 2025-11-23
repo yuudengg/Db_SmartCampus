@@ -35,10 +35,12 @@ export function ReservInfoModal({
         const res = await axiosInstance.get("/spaces/stop-periods");
         if (res.data.success) {
           const stops = res.data.data.filter(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (s: any) => s.space_id === spaceId
           );
 
           const all: string[] = [];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           stops.forEach((stop: any) => {
             const start = new Date(stop.start_date);
             const end = new Date(stop.end_date);
@@ -106,7 +108,7 @@ export function ReservInfoModal({
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (disabledDates.includes(value)) {
-      alert("이 날짜는 사용중지된 공간입니다!");
+      alert("이 날짜는 예약이 불가능합니다!");
       return;
     }
     setReserveDate(value);
