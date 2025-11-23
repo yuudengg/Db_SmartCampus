@@ -867,5 +867,10 @@ def cancel_reservation(reservation_id):
 # -----------------------------------------------------------
 # 서버 실행
 # -----------------------------------------------------------
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+if __name__ == "__main__":
+    from waitress import serve
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    print(f"✅ Flask server starting on port {port}...")
+    serve(app, host="0.0.0.0", port=port)
+
