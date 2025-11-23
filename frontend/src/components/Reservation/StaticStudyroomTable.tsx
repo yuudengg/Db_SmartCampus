@@ -1,44 +1,52 @@
 import { useState, useEffect } from "react";
-import { ReservInfoModal } from "../Modals/ReservInfoModal";
 import { axiosInstance } from "../../apis/axiosInstance";
 import type { SpaceInfo } from "../../types/space";
 
 export const StaticStudyroomTable = () => {
-  const [open, setOpen] = useState(false);
   const [studyrooms, setStudyrooms] = useState<SpaceInfo[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [reservations, setReservations] = useState<any[]>([]);
   const [selectBuilding, setSelectBuilding] = useState("중앙도서관");
-  const [selectedSpaceId, setSelectedSpaceId] = useState<number | null>(null);
 
-  // 서버에서 스터디룸 목록 불러오기
+  // 🔹 스터디룸 목록 불러오기
   useEffect(() => {
     const fetchStudyrooms = async () => {
       try {
         const res = await axiosInstance.get("/spaces/studyroom");
-        if (res.data.success) {
-          setStudyrooms(res.data.data);
-        } else {
-          alert("스터디룸 데이터를 불러오지 못했습니다.");
-        }
+        if (res.data.success) setStudyrooms(res.data.data);
       } catch (err) {
         console.error(err);
-        alert("서버 연결 오류가 발생했습니다!");
       }
     };
     fetchStudyrooms();
   }, []);
 
-  // 선택한 건물의 강의실만 필터링
+  // 🔹 전체 예약 데이터 불러오기 (사용 현황 계산용)
+  useEffect(() => {
+    const fetchReservations = async () => {
+      try {
+        const res = await axiosInstance.get("/admin/reservations");
+        if (res.data.success) setReservations(res.data.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchReservations();
+  }, []);
+
+  // 🔹 특정 스터디룸의 사용률 계산
+  const getUsageRate = (spaceName: string) => {
+    const roomReserv = reservations.filter((r) => r.spaceName === spaceName);
+    if (roomReserv.length === 0) return 0;
+
+    const completed = roomReserv.filter((r) => r.status === "사용 완료").length;
+    return Math.round((completed / roomReserv.length) * 100);
+  };
+
+  // 🔹 선택 건물 필터
   const filteredRooms = studyrooms.filter(
     (room) => room.location === selectBuilding
   );
-
-  // 예약 버튼 클릭 시
-  const handleClick = (spaceId: number) => {
-    setSelectedSpaceId(spaceId); // 🔹 spaceId 저장
-    setOpen(true); // 🔹 모달 열기
-  };
-  const handleConfirm = () => setOpen(false);
-  const handleCancel = () => setOpen(false);
 
   const buildings = [
     { label: "종합관", value: "중앙도서관" },
@@ -47,6 +55,7 @@ export const StaticStudyroomTable = () => {
 
   return (
     <div className="flex flex-col items-center">
+      {/* 건물 선택 */}
       <div className="flex w-200">
         {buildings.map((b) => (
           <button
@@ -63,38 +72,41 @@ export const StaticStudyroomTable = () => {
         ))}
       </div>
 
+      {/* 테이블 */}
       <div className="flex flex-col w-200 h-100 border-2 border-blue-900 gap-2 p-6 overflow-auto">
         <div className="grid grid-cols-4 text-2xl text-blue-900 font-bold gap-4 pb-2">
           <div className="flex justify-center"></div>
-          <div className="flex justify-center">강의실</div>
+          <div className="flex justify-center">스터디룸</div>
           <div className="flex justify-center">수용 인원</div>
           <div className="flex justify-center">사용 현황</div>
         </div>
 
-        {filteredRooms.map((room, index) => (
-          <div
-            key={room.space_id}
-            className="grid grid-cols-4 text-xl text-blue-900 border-b py-2"
-          >
-            <div className="text-center">{index + 1}</div>
-            <div className="text-center">{room.space_name}</div>
-            <div className="text-center">{room.capacity}</div>
-            <button
-              className="text-center w-35 border px-2 mx-4"
-              onClick={() => handleClick(room.space_id)}
-            >
-              예약 신청
-            </button>
-          </div>
-        ))}
-      </div>
+        {filteredRooms.map((room, index) => {
+          const usage = getUsageRate(room.space_name);
 
-      <ReservInfoModal
-        open={open}
-        onConfirm={handleConfirm}
-        onCancel={handleCancel}
-        spaceId={selectedSpaceId ?? 0}
-      />
+          return (
+            <div
+              key={room.space_id}
+              className="grid grid-cols-4 text-xl text-blue-900 border-b py-3 items-center"
+            >
+              <div className="text-center">{index + 1}</div>
+              <div className="text-center">{room.space_name}</div>
+              <div className="text-center">{room.capacity}</div>
+
+              {/* 🔵 사용 현황 그래프 */}
+              <div className="flex flex-col items-center w-full px-4">
+                <div className="w-full bg-gray-200 h-4 rounded">
+                  <div
+                    className="h-full bg-blue-900 rounded"
+                    style={{ width: `${usage}%` }}
+                  />
+                </div>
+                <p className="text-sm mt-1">{usage}%</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

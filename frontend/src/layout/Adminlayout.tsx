@@ -6,7 +6,7 @@ export const AdminLayout = () => {
   return (
     <PrivateRoute>
       <div className="h-dvh flex flex-col">
-        <main className="flex-1 mt-18">
+        <main className="flex-1">
           <Outlet />
         </main>
         <Footer />
