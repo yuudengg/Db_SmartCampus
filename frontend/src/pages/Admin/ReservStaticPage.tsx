@@ -1,8 +1,8 @@
 import { ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { NavLink } from "react-router";
-import { ClassroomTable } from "../../components/Reservation/ClassroomTable";
-import { StudyroomTable } from "../../components/Reservation/StudyroomTable";
+import { StaticClassroomTable } from "../../components/Reservation/StaticClassroomTable";
+import { StaticStudyroomTable } from "../../components/Reservation/StaticStudyroomTable";
 
 export const ReservStaticPage = () => {
   const [select, setSelect] = useState<"classroom" | "studyroom">("classroom");
@@ -45,7 +45,11 @@ export const ReservStaticPage = () => {
             스터디룸
           </button>
         </div>
-        {select === "classroom" ? <ClassroomTable /> : <StudyroomTable />}
+        {select === "classroom" ? (
+          <StaticClassroomTable />
+        ) : (
+          <StaticStudyroomTable />
+        )}
       </div>
     </div>
   );

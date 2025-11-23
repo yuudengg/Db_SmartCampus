@@ -870,6 +870,37 @@ def cancel_reservation(reservation_id):
         conn.close()
 
 
+@app.route('/api/reservation/complete/<int:reservation_id>', methods=['PUT'])
+def complete_reservation(reservation_id):
+    """예약 사용 완료 처리"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        # 예약 존재 확인
+        cursor.execute("SELECT * FROM Reservation WHERE reservation_id = ?", (reservation_id,))
+        reservation = cursor.fetchone()
+
+        if not reservation:
+            return jsonify({"success": False, "message": "해당 예약이 없습니다."}), 404
+
+        # 상태 변경
+        cursor.execute("""
+            UPDATE Reservation 
+            SET status = '사용 완료'
+            WHERE reservation_id = ?
+        """, (reservation_id,))
+        conn.commit()
+
+        return jsonify({"success": True, "message": "사용 완료 처리되었습니다."}), 200
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": f"서버 오류: {e}"}), 500
+    finally:
+        conn.close()
+
+
 # -----------------------------------------------------------
 # 서버 실행
 # -----------------------------------------------------------
