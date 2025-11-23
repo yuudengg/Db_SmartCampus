@@ -11,6 +11,15 @@ app.config['SECRET_KEY'] = 'your_strong_secret_key_here'
 app.config['JSON_AS_ASCII'] = False
 DATABASE = 'db_project_table'
 
+@app.after_request
+def after_request(response):
+    response.headers.add("Access-Control-Allow-Origin", "https://smartcampus1.vercel.app")
+    response.headers.add("Access-Control-Allow-Credentials", "true")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+    response.headers.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+    return response
+
+
 # ✅ React 연동 허용
 CORS(
     app,
@@ -870,14 +879,6 @@ def cancel_reservation(reservation_id):
     finally:
         conn.close()
 
-
-@app.after_request
-def after_request(response):
-    response.headers.add("Access-Control-Allow-Origin", "https://smartcampus1.vercel.app")
-    response.headers.add("Access-Control-Allow-Credentials", "true")
-    response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
-    response.headers.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-    return response
 
 # -----------------------------------------------------------
 # 서버 실행
