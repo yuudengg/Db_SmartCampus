@@ -14,10 +14,10 @@ DATABASE = 'db_project_table'
 # ✅ React 연동 허용
 CORS(
     app,
-    resources={r"/api/*": {"origins": "*"}},
-    supports_credentials=True,
-    origins=["https://smartcampus1.vercel.app"]
+    resources={r"/*": {"origins": "https://smartcampus1.vercel.app"}},
+    supports_credentials=True
 )
+
 
 # -----------------------------------------------------------
 # DB 연결 함수
