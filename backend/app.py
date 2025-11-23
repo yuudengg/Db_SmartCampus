@@ -14,8 +14,9 @@ DATABASE = 'db_project_table'
 # ✅ React 연동 허용
 CORS(
     app,
-    resources={r"/*": {"origins": "https://smartcampus1.vercel.app"}},
-    supports_credentials=True
+    resources={r"/*": {"origins": ["https://smartcampus1.vercel.app"]}},
+    supports_credentials=True,
+    allow_headers=["Content-Type", "Authorization"]
 )
 
 
@@ -80,6 +81,10 @@ def process_daily_tasks(conn):
             """, (user_id, '노쇼 3회 누적 자동 제한', now.strftime('%Y-%m-%d'), 3))
             conn.execute("UPDATE Reservation SET status = '노쇼-처리됨' WHERE user_id = ? AND status = '노쇼'", (user_id,))
     conn.commit()
+
+@app.route("/")
+def home():
+    return jsonify({"msg": "✅ CORS OK"})
 
 # -----------------------------------------------------------
 # ✅ API: 사용자 로그인
