@@ -76,7 +76,12 @@ export const StaticClassroomTable = () => {
             <div className="text-center">{index + 1}</div>
             <div className="text-center">{room.space_name}</div>
             <div className="text-center">{room.capacity}</div>
-            <div></div>
+            <button
+              className="text-center w-35 border px-2 mx-4"
+              onClick={() => handleClick(room.space_id)}
+            >
+              예약 신청
+            </button>
           </div>
         ))}
       </div>
