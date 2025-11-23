@@ -38,7 +38,7 @@ def after_request(response):
 # ✅ React 연동 허용
 CORS(
     app,
-    resources={r"/api/*": {"origins": "https://smartcampus1.vercel.app"}},
+    resources={r"/api/*": {"origins": ["https://smartcampus1.vercel.app"]}},
     supports_credentials=True,
     allow_headers=["Content-Type", "Authorization"],
     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
