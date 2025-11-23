@@ -816,7 +816,7 @@ def get_user_reservations(user_id):
             FROM Reservation r
             JOIN User u ON r.user_id = u.user_id
             JOIN Space s ON r.space_id = s.space_id
-            WHERE r.user_id = ? AND r.status != '예약취소'
+            WHERE r.user_id = ? AND r.status NOT IN ('예약취소', '취소됨)
             ORDER BY r.reservation_date DESC, r.start_time
         """, (user_id,))
 
