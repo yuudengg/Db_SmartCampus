@@ -14,9 +14,10 @@ DATABASE = 'db_project_table'
 # ✅ React 연동 허용
 CORS(
     app,
-    resources={r"/*": {"origins": ["https://smartcampus1.vercel.app"]}},
+    resources={r"/*": {"origins": "*"}},
     supports_credentials=True,
-    allow_headers=["Content-Type", "Authorization"]
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 )
 
 
