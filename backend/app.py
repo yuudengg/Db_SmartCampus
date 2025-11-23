@@ -11,37 +11,12 @@ app.config['SECRET_KEY'] = 'your_strong_secret_key_here'
 app.config['JSON_AS_ASCII'] = False
 DATABASE = 'db_project_table'
 
-@app.before_request
-def handle_options():
-    if request.method == "OPTIONS":
-        response = app.make_default_options_response()
-        headers = {
-            "Access-Control-Allow-Origin": "https://smartcampus1.vercel.app",
-            "Access-Control-Allow-Credentials": "true",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
-        }
-        for k, v in headers.items():
-            response.headers[k] = v
-        return response
-
-
-@app.after_request
-def after_request(response):
-    response.headers.add("Access-Control-Allow-Origin", "https://smartcampus1.vercel.app")
-    response.headers.add("Access-Control-Allow-Credentials", "true")
-    response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
-    response.headers.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-    return response
-
 
 # ✅ React 연동 허용
 CORS(
     app,
     resources={r"/api/*": {"origins": ["https://smartcampus1.vercel.app"]}},
     supports_credentials=True,
-    allow_headers=["Content-Type", "Authorization"],
-    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 )
 
 
