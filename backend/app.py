@@ -16,7 +16,7 @@ CORS(
     app,
     resources={r"/api/*": {"origins": "*"}},
     supports_credentials=True,
-    origins=["http://127.0.0.1:5173"]
+    origins=["https://smartcampus1.vercel.app"]
 )
 
 # -----------------------------------------------------------
