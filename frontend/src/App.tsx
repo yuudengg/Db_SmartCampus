@@ -2,7 +2,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import "./App.css";
 import { HomeLayout } from "./layout/Homelayout";
 import { HomePage } from "./pages/HomePage";
-import { SignupPage } from "./pages/User/SignupPage";
+import { SignupPage } from "./pages/SignupPage";
 import { UserLoginPage } from "./pages/User/UserLoginPage";
 import { SpaceReservation } from "./pages/User/SpaceReservation";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -67,7 +67,6 @@ export function App() {
       ],
     },
   ]);
-
   return (
     <>
       <RouterProvider router={router} />

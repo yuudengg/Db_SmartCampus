@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import { StudentFields } from "../../components/SignupField/StudentField";
-import { ProfessorFields } from "../../components/SignupField/ProfessorField";
-import { postCheckId, registerUser } from "../../apis/user";
+import { StudentFields } from "../components/SignupField/StudentField";
+import { ProfessorFields } from "../components/SignupField/ProfessorField";
+import { postCheckId, registerUser } from "../apis/user";
 import { useNavigate } from "react-router";
 
 export const SignupPage = () => {
@@ -27,7 +27,9 @@ export const SignupPage = () => {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setIdChecked(false);
+    if (name === "login_id") {
+      setIdChecked(false);
+    }
   };
 
   // 중복확인 버튼 함수
@@ -109,7 +111,12 @@ export const SignupPage = () => {
       } else {
         alert("회원가입 실패: " + res.message);
       }
-    } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      if (err?.response?.status === 409) {
+        alert(err.response.data.message); // 서버가 보낸 "이미 존재하는 아이디입니다"
+        return;
+      }
       console.error(err);
       alert("서버 연결 오류가 발생했습니다.");
     }

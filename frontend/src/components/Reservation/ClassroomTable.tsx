@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { ReservInfoModal } from "../Modals/ReservInfoModal";
 import { axiosInstance } from "../../apis/axiosInstance";
-import { useUser } from "../../hooks/useUser";
 import type { SpaceInfo } from "../../types/space";
 
 export const ClassroomTable = () => {
@@ -9,7 +8,6 @@ export const ClassroomTable = () => {
   const [classrooms, setClassrooms] = useState<SpaceInfo[]>([]);
   const [selectBuilding, setSelectBuilding] = useState("A동");
   const [selectedSpaceId, setSelectedSpaceId] = useState<number | null>(null);
-  const user = useUser();
 
   // 서버에서 강의실 목록 불러오기
   useEffect(() => {
@@ -42,22 +40,31 @@ export const ClassroomTable = () => {
   const handleConfirm = () => setOpen(false);
   const handleCancel = () => setOpen(false);
 
-  const buildings = ["A동", "B동", "C동", "D동", "E동", "G동", "P동", "산융"];
+  const buildings = [
+    { label: "A동", value: "A동" },
+    { label: "B동", value: "B동" },
+    { label: "C동", value: "C동" },
+    { label: "D동", value: "D동" },
+    { label: "E동", value: "E동" },
+    { label: "G동", value: "G동" },
+    { label: "P동", value: "P동" },
+    { label: "산융", value: "산학융합본부" },
+  ];
 
   return (
     <div className="flex flex-col items-center">
       <div className="flex w-200">
         {buildings.map((b) => (
           <button
-            key={b}
-            onClick={() => setSelectBuilding(b)}
+            key={b.value}
+            onClick={() => setSelectBuilding(b.value)}
             className={`px-4 w-1/7 rounded-t-sm border-2 border-blue-900 text-2xl ${
-              selectBuilding === b
+              selectBuilding === b.value
                 ? "bg-blue-900 text-white"
                 : "bg-white text-blue-900"
             }`}
           >
-            {b}
+            {b.label}
           </button>
         ))}
       </div>

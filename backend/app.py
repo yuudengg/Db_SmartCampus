@@ -11,6 +11,7 @@ app.config['SECRET_KEY'] = 'your_strong_secret_key_here'
 app.config['JSON_AS_ASCII'] = False
 DATABASE = 'db_project_table'
 
+
 # ✅ React 연동 허용
 CORS(
     app,
@@ -18,6 +19,7 @@ CORS(
     supports_credentials=True,
     origins=["http://127.0.0.1:5173"]
 )
+
 
 # -----------------------------------------------------------
 # DB 연결 함수
@@ -80,6 +82,10 @@ def process_daily_tasks(conn):
             """, (user_id, '노쇼 3회 누적 자동 제한', now.strftime('%Y-%m-%d'), 3))
             conn.execute("UPDATE Reservation SET status = '노쇼-처리됨' WHERE user_id = ? AND status = '노쇼'", (user_id,))
     conn.commit()
+
+@app.route("/")
+def home():
+    return jsonify({"msg": "✅ CORS OK"})
 
 # -----------------------------------------------------------
 # ✅ API: 사용자 로그인
@@ -811,7 +817,7 @@ def get_user_reservations(user_id):
             FROM Reservation r
             JOIN User u ON r.user_id = u.user_id
             JOIN Space s ON r.space_id = s.space_id
-            WHERE r.user_id = ? AND r.status != '예약취소'
+            WHERE r.user_id = ? AND r.status NOT IN ('예약취소', '취소됨')
             ORDER BY r.reservation_date DESC, r.start_time
         """, (user_id,))
 
@@ -863,6 +869,38 @@ def cancel_reservation(reservation_id):
 
     finally:
         conn.close()
+
+
+@app.route('/api/reservation/complete/<int:reservation_id>', methods=['PUT'])
+def complete_reservation(reservation_id):
+    """예약 사용 완료 처리"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        # 예약 존재 확인
+        cursor.execute("SELECT * FROM Reservation WHERE reservation_id = ?", (reservation_id,))
+        reservation = cursor.fetchone()
+
+        if not reservation:
+            return jsonify({"success": False, "message": "해당 예약이 없습니다."}), 404
+
+        # 상태 변경
+        cursor.execute("""
+            UPDATE Reservation 
+            SET status = '사용 완료'
+            WHERE reservation_id = ?
+        """, (reservation_id,))
+        conn.commit()
+
+        return jsonify({"success": True, "message": "사용 완료 처리되었습니다."}), 200
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": f"서버 오류: {e}"}), 500
+    finally:
+        conn.close()
+
 
 # -----------------------------------------------------------
 # 서버 실행
