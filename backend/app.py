@@ -15,8 +15,9 @@ DATABASE = 'db_project_table'
 # ✅ React 연동 허용
 CORS(
     app,
-    resources={r"/api/*": {"origins": ["https://smartcampus1.vercel.app"]}},
+    resources={r"/api/*": {"origins": "*"}},
     supports_credentials=True,
+    origins=["http://127.0.0.1:5173"]
 )
 
 
@@ -816,7 +817,7 @@ def get_user_reservations(user_id):
             FROM Reservation r
             JOIN User u ON r.user_id = u.user_id
             JOIN Space s ON r.space_id = s.space_id
-            WHERE r.user_id = ? AND r.status NOT IN ('예약취소', '취소됨)
+            WHERE r.user_id = ? AND r.status NOT IN ('예약취소', '취소됨')
             ORDER BY r.reservation_date DESC, r.start_time
         """, (user_id,))
 
@@ -904,10 +905,5 @@ def complete_reservation(reservation_id):
 # -----------------------------------------------------------
 # 서버 실행
 # -----------------------------------------------------------
-if __name__ == "__main__":
-    from waitress import serve
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    print(f"✅ Flask server starting on port {port}...")
-    serve(app, host="0.0.0.0", port=port)
-
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
